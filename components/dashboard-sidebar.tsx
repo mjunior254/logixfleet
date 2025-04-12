@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { usePathname } from "next/navigation"
 import Link from "next/link"
 import {
@@ -11,13 +10,13 @@ import {
   FileText,
   Settings,
   PenToolIcon as Tool,
-  ClipboardList,
+  Calendar,
   ChevronDown,
   ShoppingCart,
   CreditCard,
+  Wrench,
   Menu,
   Users,
-  LocateFixed,
 } from "lucide-react"
 import {
   Sidebar,
@@ -33,64 +32,30 @@ import { Button } from "@/components/ui/button"
 import { useAuth, type User as AuthUser } from "@/contexts/auth-context"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { usePermissions } from "@/hooks/use-permissions"
-import { PermissionGate } from "@/components/permission-gate"
 
 export function DashboardSidebar({ user }: { user: AuthUser }) {
   const pathname = usePathname()
   const { logout } = useAuth()
   const { canRead, hasModule } = usePermissions()
 
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false)
-
+  // Check permissions for different modules
+  const canAccessUsers = canRead("User")
+  const canAccessVehicles = canRead("Vehicle")
+  const canAccessDrivers = canRead("Driver")
+  const canAccessMechanics = canRead("Mechanic")
   const canAccessGarages = canRead("Garage")
   const canAccessVehicleServices = canRead("Vehicle Service")
+  const canAccessVehicleInspections = canRead("Vehicle Inspection")
+  const canAccessInsurance = canRead("Insurance")
   const canAccessPurchasing = hasModule("Buying")
   const canAccessAccounting = hasModule("Accounts")
-
-  const handleLinkClick = () => {
-    setIsSidebarOpen(false)
-  }
-
-  return (
-    <>
-      {/* Mobile Trigger Button */}
-      <div className="fixed top-4 left-4 z-50 md:hidden">
-        <Button
-          className="bg-white shadow-md rounded-md"
-          variant="outline"
-          size="icon"
-          onClick={() => setIsSidebarOpen(true)}
-        >
-          <span className="sr-only">Open sidebar</span>
-          <Menu className="h-5 w-5" />
-        </Button>
-      </div>
-
-      {/* Background overlay */}
-      {isSidebarOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-40 backdrop-blur-sm transition-opacity duration-300 md:hidden"
-          onClick={() => setIsSidebarOpen(false)}
-        />
-      )}
-
-      {/* Sidebar */}
-      <div className={`fixed inset-y-0 left-0 z-50 w-64 transform bg-white border-r border-gray-200 transition-transform duration-300 md:relative md:translate-x-0 ${isSidebarOpen ? "translate-x-0" : "-translate-x-full"} md:block`}>
 
   return (
     <>
       <Sidebar variant="floating" className="border-r border-gray-200">
         <SidebarHeader className="p-4 border-b border-gray-200">
-          <div className="flex items-center gap-4">
-            <img 
-              src="/images/logixlogo.png" 
-              alt="LogixFleet Logo" 
-              className="h-20 w-20" // Increased size from h-10
-            />
-            <div className="hidden md:block">
-              <h1 className="text-xl font-bold text-gray-900">Logix Fleet</h1>
-              <p className="text-base text-gray-600">Management System</p>
-            </div>
+          <div className="flex items-center">
+            <img src="/images/logixlogo.png" alt="LogixFleet Logo" className="h-10" />
           </div>
         </SidebarHeader>
         <SidebarContent className="py-4">
@@ -104,7 +69,7 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
               </SidebarMenuButton>
             </SidebarMenuItem>
 
-            <PermissionGate docType="User" permission="read">
+            {canAccessUsers && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/users")}>
                   <Link href="/dashboard/users">
@@ -113,9 +78,9 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            </PermissionGate>
+            )}
 
-            <PermissionGate docType="Vehicle" permission="read">
+            {canAccessVehicles && (
               <Collapsible>
                 <SidebarMenuItem>
                   <CollapsibleTrigger asChild>
@@ -135,8 +100,7 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
                         </Link>
                       </SidebarMenuButton>
                     </SidebarMenuItem>
-
-                    <PermissionGate docType="Vehicle Inspection" permission="read">
+                    {canAccessVehicleInspections && (
                       <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={pathname === "/dashboard/vehicles/inspections"}>
                           <Link href="/dashboard/vehicles/inspections">
@@ -144,9 +108,8 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    </PermissionGate>
-
-                    <PermissionGate docType="Insurance" permission="read">
+                    )}
+                    {canAccessInsurance && (
                       <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/vehicles/insurance")}>
                           <Link href="/dashboard/vehicles/insurance">
@@ -154,9 +117,8 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    </PermissionGate>
-
-                    <PermissionGate docType="Vehicle Service" permission="read">
+                    )}
+                    {canAccessVehicleServices && (
                       <SidebarMenuItem>
                         <SidebarMenuButton asChild isActive={pathname === "/dashboard/vehicles/service"}>
                           <Link href="/dashboard/vehicles/service">
@@ -164,13 +126,13 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
                           </Link>
                         </SidebarMenuButton>
                       </SidebarMenuItem>
-                    </PermissionGate>
+                    )}
                   </SidebarMenu>
                 </CollapsibleContent>
               </Collapsible>
-            </PermissionGate>
+            )}
 
-            <PermissionGate docType="Driver" permission="read">
+            {canAccessDrivers && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/drivers")}>
                   <Link href="/dashboard/drivers">
@@ -179,9 +141,19 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
                   </Link>
                 </SidebarMenuButton>
               </SidebarMenuItem>
-            </PermissionGate>
+            )}
 
-            {/* Continue with other menu items using PermissionGate */}
+            {canAccessMechanics && (
+              <SidebarMenuItem>
+                <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/mechanics")}>
+                  <Link href="/dashboard/mechanics">
+                    <Wrench className="mr-2 h-5 w-5" />
+                    <span>Mechanics</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )}
+
             {canAccessGarages && (
               <SidebarMenuItem>
                 <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/garages")}>
@@ -235,22 +207,10 @@ export function DashboardSidebar({ user }: { user: AuthUser }) {
             )}
 
             <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/issues")}>
-                <Link
-                  href="/dashboard/issues"
-                  className="gap-3" // Keep original gap if needed
-                >
-                  <ClipboardList className="mr-2 h-4 w-4" />
-                  <span>Issue Tracking</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/gps")}>
-                <Link href="/dashboard/gps">
-                  <LocateFixed className="mr-2 h-5 w-5" />
-                  <span>GPS Tracking</span>
+              <SidebarMenuButton asChild isActive={pathname.startsWith("/dashboard/schedule")}>
+                <Link href="/dashboard/schedule">
+                  <Calendar className="mr-2 h-5 w-5" />
+                  <span>Schedule</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
